@@ -440,7 +440,7 @@ export default function App() {
       </div>
 
       <footer className="py-6 text-center text-xs text-gray-500 border-t border-gray-900 mt-12">
-        © {new Date().getFullYear()} FormFix Pro • Powered by React & Vite
+        © {new Date().getFullYear()} FormFix Pro • Powered by Tech SQB
       </footer>
 
       <Analytics />
