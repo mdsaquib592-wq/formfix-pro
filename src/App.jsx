@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import Navbar from "./components/Navbar";
 import AdBanner from "./components/AdBanner";
 import KbCompressor from "./components/KbCompressor";
@@ -11,6 +12,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+      <Analytics />
       {/* Top Sticky Navbar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
