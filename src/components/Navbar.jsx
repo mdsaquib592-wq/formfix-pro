@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useSubscription } from "../hooks/useSubscription";
+import PaywallModal from "./PaywallModal";
 
 export default function Navbar({
   activeTab,
@@ -14,7 +16,10 @@ export default function Navbar({
   const [openCategory, setOpenCategory] = useState(null);
   const [quickSearch, setQuickSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const navRef = useRef(null);
+
+  const { user, subscription, loginWithGoogle, logout } = useSubscription();
 
   const categories = [
     { name: "Cyber Cafe Pro", icon: "🏪" },
@@ -26,7 +31,6 @@ export default function Navbar({
     { name: "Others", icon: "🛠️" },
   ];
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (navRef.current && !navRef.current.contains(e.target)) {
@@ -56,7 +60,7 @@ export default function Navbar({
       ref={navRef}
       className="sticky top-0 z-50 border-b border-white/10 bg-[#070b14]/85 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
     >
-      {/* Top Primary Bar: Brand, Search, Theme Switcher */}
+      {/* Top Primary Bar: Brand, Search, Theme Switcher, Google Auth & Subscriptions */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Logo */}
         <div
@@ -71,9 +75,15 @@ export default function Navbar({
               <span className="text-lg font-extrabold tracking-tight text-white">
                 FormFix <span className="text-[#00e5ff]">Pro</span>
               </span>
-              <span className="text-[10px] uppercase tracking-wider bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 px-2 py-0.5 rounded-full font-bold">
-                All-In-One Studio
-              </span>
+              {subscription.isSubscribed ? (
+                <span className="text-[10px] uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-black">
+                  ⭐ {subscription.plan.toUpperCase()} PRO
+                </span>
+              ) : (
+                <span className="text-[10px] uppercase tracking-wider bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/30 px-2 py-0.5 rounded-full font-bold">
+                  Free Tier
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">
               100% Client-Side • Zero Upload • Cyber Cafe & Conversion Suite
@@ -82,15 +92,15 @@ export default function Navbar({
         </div>
 
         {/* Instant Tool Finder Search Bar */}
-        <div className="relative flex-1 max-w-md mx-auto sm:mx-0">
+        <div className="relative flex-1 max-w-sm mx-auto sm:mx-0">
           <div className="relative flex items-center">
             <span className="absolute left-3 text-slate-400 text-xs">🔍</span>
             <input
               type="text"
-              placeholder="Quick jump to any service (e.g., Passport, UPI QR, WEBP, PAN)..."
+              placeholder="Quick jump to any service..."
               value={quickSearch}
               onChange={(e) => setQuickSearch(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#00e5ff] focus:ring-1 focus:ring-[#00e5ff]/40 transition-all"
+              className="w-full pl-8 pr-4 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#00e5ff]"
             />
             {quickSearch && (
               <button
@@ -102,7 +112,6 @@ export default function Navbar({
             )}
           </div>
 
-          {/* Instant Search Dropdown */}
           {searchResults.length > 0 && (
             <div className="absolute left-0 right-0 mt-2 bg-[#0d1322] border border-slate-700 rounded-2xl shadow-2xl max-h-72 overflow-y-auto z-50 p-2 space-y-1">
               {searchResults.map((tool, i) => (
@@ -130,9 +139,9 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Right Controls: Background Theme Switcher & Mobile Toggle */}
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 gap-1">
+        {/* Right Controls: Theme Switcher & Gmail Auth / Upgrade Button */}
+        <div className="flex items-center gap-2.5">
+          <div className="hidden lg:flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 gap-1">
             <span className="text-[10px] text-slate-400 px-2 font-semibold">
               ✨ Theme:
             </span>
@@ -148,16 +157,49 @@ export default function Navbar({
                 }`}
               >
                 <span>{t.icon}</span>
-                <span className="hidden lg:inline">{t.short}</span>
+                <span className="hidden xl:inline">{t.short}</span>
               </button>
             ))}
           </div>
+
+          {/* User Auth & Upgrade Trigger */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              {!subscription.isSubscribed && (
+                <button
+                  onClick={() => setShowPaywall(true)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-black text-xs rounded-xl shadow-lg cursor-pointer transition hover:scale-105"
+                >
+                  ⚡ Upgrade ₹59/mo
+                </button>
+              )}
+              <div className="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl">
+                <span className="text-xs font-bold text-slate-200 hidden sm:inline">
+                  {user.displayName?.split(" ")[0]}
+                </span>
+                <button
+                  onClick={logout}
+                  title="Logout"
+                  className="text-[10px] text-rose-400 font-bold hover:underline cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={loginWithGoogle}
+              className="flex items-center gap-2 px-3.5 py-2 bg-white text-slate-900 font-extrabold text-xs rounded-xl shadow hover:bg-slate-100 cursor-pointer transition"
+            >
+              <span>🌐 Gmail Login</span>
+            </button>
+          )}
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-[#00e5ff]"
           >
-            {mobileMenuOpen ? "✕ Close" : "☰ All Services"}
+            {mobileMenuOpen ? "✕ Close" : "☰ Menu"}
           </button>
         </div>
       </div>
@@ -165,7 +207,6 @@ export default function Navbar({
       {/* Second Bar: Full Top Services Mega-Menu Bar */}
       <div className="border-t border-white/5 bg-[#050811]/90">
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-          {/* Core Flagship Tools Pill Group */}
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mr-1 hidden xl:inline">
               Core Studios:
@@ -206,7 +247,6 @@ export default function Navbar({
 
           <div className="h-4 w-[1px] bg-slate-800 shrink-0 hidden lg:block" />
 
-          {/* Category Dropdown Triggers */}
           <div className="flex items-center gap-1 shrink-0">
             {categories.map((cat) => {
               const catTools = extendedTools.filter(
@@ -237,7 +277,6 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Mega-Menu Dropdown Drawer */}
         {openCategory && (
           <div className="border-t border-slate-800 bg-[#0a0f1d]/95 backdrop-blur-2xl shadow-2xl animate-fadeIn">
             <div className="max-w-7xl mx-auto px-4 py-4">
@@ -246,13 +285,10 @@ export default function Navbar({
                   <span className="text-xs font-extrabold uppercase tracking-wider text-[#00e5ff]">
                     {openCategory} Services
                   </span>
-                  <span className="text-[11px] text-slate-400">
-                    — Select any tool to launch immediately in workspace
-                  </span>
                 </div>
                 <button
                   onClick={() => setOpenCategory(null)}
-                  className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-900"
+                  className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-900 cursor-pointer"
                 >
                   ✕ Close Menu
                 </button>
@@ -291,58 +327,12 @@ export default function Navbar({
             </div>
           </div>
         )}
-
-        {/* Mobile Full Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-800 bg-[#0a0f1d] p-4 max-h-[75vh] overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">
-                Background Theme:
-              </span>
-              <div className="flex gap-1">
-                {Object.values(themes).map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setBgTheme(t.id)}
-                    className={`px-2 py-1 rounded text-[10px] font-bold ${
-                      bgTheme === t.id
-                        ? "bg-[#00e5ff] text-black"
-                        : "bg-slate-900 text-slate-300"
-                    }`}
-                  >
-                    {t.icon} {t.short}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {categories.map((cat) => (
-              <div key={cat.name} className="space-y-2">
-                <h4 className="text-xs font-extrabold text-[#00e5ff] uppercase tracking-wider">
-                  {cat.icon} {cat.name}
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {extendedTools
-                    .filter((t) => t.category === cat.name)
-                    .map((tool, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          onSelectExtendedTool(tool);
-                          setMobileMenuOpen(false);
-                        }}
-                        className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-left text-xs font-semibold text-slate-200 flex items-center gap-2"
-                      >
-                        <span>{tool.icon}</span>
-                        <span className="truncate">{tool.name}</span>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
+
+      <PaywallModal
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
     </header>
   );
 }
