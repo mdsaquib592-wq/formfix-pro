@@ -18,7 +18,7 @@ export default function App() {
 
       {/* Top Banner Ad Slot */}
       <AdBanner slotLabel="Sponsored Top Banner" width={728} height={90} />
-
+      <Analytics />
       {/* Main Studio Content */}
       <main className="max-w-6xl w-full mx-auto px-4 py-5 flex-1">
         {activeTab === "compressor" && <KbCompressor />}
